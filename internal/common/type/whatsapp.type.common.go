@@ -18,6 +18,8 @@ const (
 	EPHEMERAL   MessageTypeWhatsapp = "ephemeral"
 )
 
+// Line struct for incoming whatsapp message =============
+
 type IncomingWhatspp struct {
 	TenantId  string             `json:"tenant_id" validate:"required"`
 	AccountId string             `json:"account_id" validate:"required"`
@@ -72,3 +74,5 @@ type InteractiveListReplyWhatsapp struct {
 	Title string `json:"title" validate:"required"`
 	Id    string `json:"id" validate:"required"`
 }
+
+// Line struct for outgoing whatsapp message =============
