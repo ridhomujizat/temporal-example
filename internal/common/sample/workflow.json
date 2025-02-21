@@ -1,0 +1,24 @@
+{
+    "id": "workflow",
+    "name": "workflow",
+    "version": "1.0.0",
+    "description": "workflow",
+    "flow": {
+        "nodes": [
+            {
+                "id": "start",
+                "type": "start",
+                "name": "start",
+                "description": "start",
+                "next": "end"
+            },
+            {
+                "id": "end",
+                "type": "end",
+                "name": "end",
+                "description": "end"
+            }
+        ]
+    }
+
+}
