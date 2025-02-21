@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"onx-outgoing-go/internal/common/enum"
 	_type "onx-outgoing-go/internal/common/type"
+	types "onx-outgoing-go/internal/common/type"
 	"onx-outgoing-go/internal/pkg/helper"
 	"strconv"
 
@@ -80,7 +81,7 @@ func MultipartFormMiddleware(fields []FieldOpts) gin.HandlerFunc {
 
 				// add validate
 				if field.Name == enum.IMAGE.ToString() {
-					isValid := enum.IMAGE.IsValidImage(&bufferedFile)
+					isValid := types.FileType(enum.IMAGE).IsValidImage(&bufferedFile)
 					if !isValid {
 						send(helper.ParseResponse(&_type.Response{
 							Code:    http.StatusBadRequest,
@@ -91,7 +92,7 @@ func MultipartFormMiddleware(fields []FieldOpts) gin.HandlerFunc {
 					}
 				}
 				if field.Name == enum.VIDEO.ToString() {
-					isValid := enum.VIDEO.IsValidVideo(&bufferedFile)
+					isValid := types.FileType(enum.VIDEO).IsValidVideo(&bufferedFile)
 					if !isValid {
 						send(helper.ParseResponse(&_type.Response{
 							Code:    http.StatusBadRequest,
