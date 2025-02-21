@@ -31,3 +31,16 @@ type LocationPayload struct {
 	Latitude  float64 `json:"latitude" validate:"required"`
 	Longitude float64 `json:"longitude" validate:"required"`
 }
+
+type ResultWorkflowBot struct {
+	AccountId   string           `json:"accountId" validate:"required"`
+	UniqueId    string           `json:"unique_id" validate:"required"`
+	HostoryChat []HistoryChatBot `json:"history_chat" validate:"required"`
+}
+
+type HistoryChatBot struct {
+	From          string `json:"from" validate:"required"`
+	Type          string `json:"type" validate:"required"`
+	Message       string `json:"message" validate:"required"`
+	DateTimestamp string `json:"date_timestamp" validate:"required"`
+}

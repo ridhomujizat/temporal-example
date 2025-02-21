@@ -7,9 +7,12 @@ import (
 	"onx-outgoing-go/internal/common/enum"
 	types "onx-outgoing-go/internal/common/type"
 	"onx-outgoing-go/internal/pkg/helper"
+	"time"
 )
 
-func (a *ActivityBotService) Text(payload types.PayloadBot) (string, error) {
+func (a *ActivityBotService) Text(payload types.PayloadBot) (*types.HistoryChatBot, error) {
+	var result types.HistoryChatBot
+	text := "Hallo selamat datang di bot kami"
 
 	switch payload.MetaData.ChannelSources {
 	case enum.WHATSAPP:
@@ -19,18 +22,26 @@ func (a *ActivityBotService) Text(payload types.PayloadBot) (string, error) {
 			To:               payload.MetaData.UniqueId,
 			Type:             "TEXT",
 			Text: types.TextWhatsapp{
-				Body: "Hello " + payload.Value,
+				Body: text,
 			},
 		}
 		_, err := outGoingWhatsappText(a.Ctx, payload.MetaData.AccountId, payloadText)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
+
+		result = types.HistoryChatBot{
+			From:          "Bot",
+			Type:          "text",
+			Message:       text,
+			DateTimestamp: time.Now().Format(time.RFC3339),
+		}
+		return &result, nil
 	default:
-		return "Hello " + payload.Value, nil
+		return nil, nil
 	}
 
-	return "Hello " + payload.Value, nil
+	return nil, nil
 }
 
 func outGoingWhatsappText(ctx context.Context, account string, payload types.OutgoingText) (interface{}, error) {
