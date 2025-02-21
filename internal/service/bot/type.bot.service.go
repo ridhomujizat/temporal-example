@@ -35,3 +35,8 @@ func NewService(ctx context.Context, redis redis.IRedis, manager *rabbitmq.Conne
 		taskQueueName: fmt.Sprintf("%s:bot-engine", helper.GetEnv("APP_TENANT")),
 	}, nil
 }
+
+type FlowState struct {
+	CurrentStep string `json:"current_step"`
+	Data        string `json:"data"`
+}

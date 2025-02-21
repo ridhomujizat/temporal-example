@@ -29,28 +29,29 @@ func (w *Service) Init() error {
 }
 
 func (s *Service) ExecuteWorkflow(payload types.PayloadBot) (interface{}, error) {
-	id := fmt.Sprintf("bot-%s-%s-%s", payload.MetaData.ChannelSources, payload.MetaData.AccountId, payload.MetaData.UniqueId)
+	workflowID := fmt.Sprintf("bot-%s-%s-%s", payload.MetaData.ChannelSources, payload.MetaData.AccountId, payload.MetaData.UniqueId)
 	workflowOptions := client.StartWorkflowOptions{
-		ID:        id,
+		ID:        workflowID,
 		TaskQueue: s.taskQueueName,
 	}
 
 	c := s.temporal
 
-	fmt.Println("Starting workflow")
-
-	we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, Workflow, payload)
+	err := c.SignalWorkflow(context.Background(), workflowID, "", "user_reply", payload)
 	if err != nil {
-		return nil, err
+
+		we, err := c.ExecuteWorkflow(context.Background(), workflowOptions, Workflow, payload)
+		if err != nil {
+			return nil, err
+		}
+		var result string
+		err = we.Get(context.Background(), &result)
+		if err != nil {
+			return nil, err
+		}
+
+		return result, nil
 	}
 
-	fmt.Println("Started workflow", "WorkflowID", we.GetID(), "RunID", we.GetRunID())
-
-	var result string
-	err = we.Get(context.Background(), &result)
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
+	return nil, nil
 }

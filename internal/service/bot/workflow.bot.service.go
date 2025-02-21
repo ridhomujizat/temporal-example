@@ -24,6 +24,20 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (string, error) {
 		return "", err
 	}
 
+	var input types.PayloadBot
+	selector := workflow.NewSelector(ctx)
+	selector.AddReceive(workflow.GetSignalChannel(ctx, "user_reply"),
+		func(c workflow.ReceiveChannel, _ bool) {
+			c.Receive(ctx, &input)
+		})
+	selector.Select(ctx)
+
+	err = workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).End, payload, input.Value).Get(ctx, &result)
+	if err != nil {
+		logger.Error("Activity failed.", "Error", err)
+		return "", err
+	}
+
 	logger.Info("HelloWorld workflow completed.", "result", result)
 
 	return result, nil
