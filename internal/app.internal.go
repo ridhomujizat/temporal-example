@@ -25,7 +25,7 @@ func Setup(env config.Config, engine *gin.Engine, ctx context.Context, wg *sync.
 	}
 
 	InitRoutes(e, ctx, wg, redis)
-	InitServicesOmnix(ctx, redis, rabbitMq, repository, temporalClient)
+	InitBotWorkflow(ctx, redis, rabbitMq, repository, temporalClient)
 
 }
 
@@ -53,19 +53,17 @@ func InitRoutes(e *gin.RouterGroup, ctx context.Context, wg *sync.WaitGroup, red
 	})
 
 }
-func InitServicesOmnix(ctx context.Context, redis redis.IRedis, rabbitMq *rabbitmq.ConnectionManager, repository *repository.Repository, temporal client.Client) {
+func InitBotWorkflow(ctx context.Context, redis redis.IRedis, rabbitMq *rabbitmq.ConnectionManager, repository *repository.Repository, temporal client.Client) {
 
-	whatsappp, err := botService.NewService(ctx, redis, rabbitMq, repository, temporal)
+	Botservice, err := botService.NewService(ctx, redis, rabbitMq, repository, temporal)
 	if err != nil {
 		logger.Error.Println("Failed to init service whatsapp", err)
 	}
-	if err := whatsappp.Init(); err != nil {
+	if err := Botservice.Init(); err != nil {
 		logger.Error.Println("Failed to init service whatsapp", err)
 	}
-	if err := whatsappp.SubscribeWhatsappBot(); err != nil {
+	if err := Botservice.SubscribeWhatsappBot(); err != nil {
 		logger.Error.Println("Failed to subcribe whatsapp service: ", err)
 	}
-
-	// defer temporal.CloseTemporalConnection()
 
 }

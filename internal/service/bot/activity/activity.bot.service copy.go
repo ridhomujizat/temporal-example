@@ -1,3 +1,7 @@
 package botactivity
 
-type ActivityBotService struct{}
+import "context"
+
+type ActivityBotService struct {
+	Ctx context.Context
+}

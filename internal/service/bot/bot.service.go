@@ -16,7 +16,9 @@ func (w *Service) Init() error {
 
 	wf.RegisterWorkflow(Workflow)
 	// wf.RegisterActivity(Activity)
-	wf.RegisterActivity(&botactivity.ActivityBotService{})
+	wf.RegisterActivity(&botactivity.ActivityBotService{
+		Ctx: w.ctx,
+	})
 
 	go func() {
 		err := wf.Run(worker.InterruptCh())
