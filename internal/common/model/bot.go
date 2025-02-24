@@ -17,7 +17,7 @@ type BotAccount struct {
 
 type BotWorkflow struct {
 	ID        uint       `gorm:"primaryKey" json:"id"`
-	Name      uint       `gorm:"not null" json:"name"`
+	Name      string     `gorm:"not null" json:"name"`
 	ParentId  *uint      `gorm:"default:null" json:"parent_id"`
 	BotID     uint       `gorm:"not null" json:"bot_id"`
 	Nodes     string     `gorm:"type:jsonb" json:"nodes"`

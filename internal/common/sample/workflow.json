@@ -1,0 +1,147 @@
+{
+  "id": "workflow",
+  "name": "main",
+  "version": "1.0.0",
+  "description": "workflow",
+  "startNodeId": "node1",
+  "nodes": [
+    {
+      "id": "node1",
+      "title": "Welcome",
+      "blocks": [
+        {
+          "id": "node1_block1",
+          "type": "text",
+          "content": "Selamat datang di bot temporal"
+        },
+        {
+          "id": "node1_block2",
+          "type": "choice",
+          "content": "Apa yang bisa Vina bantu terkait produk dan layanan kami ? Silakan pilih menu di bawah ini",
+          "isDropdown": true,
+          "choices": [
+            {
+              "value": "informasi_produk",
+              "content": "1. Informasi produk",
+              "nextEdgeId": "node2"
+            },
+            {
+              "value": "informasi_layanan",
+              "content": "2. Informasi layanan",
+              "nextEdgeId": "node3"
+            },
+            {
+              "value": "informasi_promo",
+              "content": "3. Informasi promo",
+              "nextEdgeId": "node4"
+            }
+          ]
+        }
+      ],
+      "graphCoordinates": { "x": 1, "y": 148 }
+    },
+    {
+      "id": "node2",
+      "title": "Informasi Produk",
+      "blocks": [
+        {
+          "id": "node2_block1",
+          "type": "text",
+          "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
+        },
+        {
+          "id": "node2_block2",
+          "type": "choice",
+          "content": "",
+          "isDropdown": false,
+          "choices": [
+            {
+              "value": "Kembali ke menu utama",
+              "content": "Kembali ke menu utama",
+              "nextEdgeId": "node1"
+            },
+            {
+              "value": "End Sesi",
+              "content": "End Sesi",
+              "nextEdgeId": "node5"
+            }
+          ]
+        }
+      ],
+      "graphCoordinates": { "x": 1, "y": 148 }
+    },
+    {
+      "id": "node3",
+      "title": "Informasi Layanan",
+      "blocks": [
+        {
+          "id": "node3_block1",
+          "type": "text",
+          "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
+        },
+        {
+          "id": "node3_block2",
+          "type": "choice",
+          "content": "",
+          "isDropdown": false,
+          "choices": [
+            {
+              "value": "Kembali ke menu utama",
+              "content": "Kembali ke menu utama",
+              "nextEdgeId": "node1"
+            },
+            {
+              "value": "End Sesi",
+              "content": "End Sesi",
+              "nextEdgeId": "node5"
+            }
+          ]
+        }
+      ],
+      "graphCoordinates": { "x": 1, "y": 148 }
+    },
+    {
+      "id": "node4",
+      "title": "Informasi Promo",
+      "blocks": [
+        {
+          "id": "node4_block1",
+          "type": "text",
+          "content": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
+        },
+        {
+          "id": "node4_block2",
+          "type": "choice",
+          "content": "",
+          "isDropdown": false,
+          "choices": [
+            {
+              "value": "Kembali ke menu utama",
+              "content": "Kembali ke menu utama",
+              "nextEdgeId": "node1"
+            },
+            {
+              "value": "Hubungi Kami",
+              "content": "Hubungi Kami",
+              "nextEdgeId": "agent"
+            }
+          ]
+        }
+      ],
+      "graphCoordinates": { "x": 1, "y": 148 }
+    },
+    {
+      "id": "node5",
+      "title": "Informasi Produk",
+      "blocks": [
+        {
+          "id": "node4_block1",
+          "type": "text",
+          "content": "Sesi Berakhir",
+          "nextEdgeId": "end_session"
+        }
+      ],
+      "graphCoordinates": { "x": 1, "y": 148 }
+    }
+  ]
+}
