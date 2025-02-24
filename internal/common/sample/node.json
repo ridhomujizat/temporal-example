@@ -1,101 +1,47 @@
 [
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node2"
-    },
-    "from": {
-      "itemId": "informasi_produk",
-      "nodeId": "node1"
-    }
+    "id": "node1_choice1",
+    "to": { "type": "node", "nodeId": "node2" },
+    "from": { "itemId": "informasi_produk", "nodeId": "node1" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node3"
-    },
-    "from": {
-      "itemId": "informasi_layanan",
-      "nodeId": "node1"
-    }
+    "id": "node1_choice2",
+    "to": { "type": "node", "nodeId": "node3" },
+    "from": { "itemId": "informasi_layanan", "nodeId": "node1" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node4"
-    },
-    "from": {
-      "itemId": "informasi_promo",
-      "nodeId": "node1"
-    }
+    "id": "node1_choice3",
+    "to": { "type": "node", "nodeId": "node4" },
+    "from": { "itemId": "informasi_promo", "nodeId": "node1" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node1"
-    },
-    "from": {
-      "itemId": "Kembali ke menu utama",
-      "nodeId": "node2"
-    }
+    "id": "node2_choice1",
+    "to": { "type": "node", "nodeId": "node1" },
+    "from": { "itemId": "Kembali ke menu utama", "nodeId": "node2" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node5"
-    },
-    "from": {
-      "itemId": "End Sesi",
-      "nodeId": "node2"
-    }
+    "id": "node2_choice2",
+    "to": { "type": "node", "nodeId": "node5" },
+    "from": { "itemId": "End Sesi", "nodeId": "node2" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node1"
-    },
-    "from": {
-      "itemId": "Kembali ke menu utama",
-      "nodeId": "node3"
-    }
+    "id": "node3_choice1",
+    "to": { "type": "node", "nodeId": "node1" },
+    "from": { "itemId": "Kembali ke menu utama", "nodeId": "node3" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node5"
-    },
-    "from": {
-      "itemId": "End Sesi",
-      "nodeId": "node3"
-    }
+    "id": "node3_choice2",
+    "to": { "type": "node", "nodeId": "node5" },
+    "from": { "itemId": "End Sesi", "nodeId": "node3" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node1"
-    },
-    "from": {
-      "itemId": "Kembali ke menu utama",
-      "nodeId": "node4"
-    }
+    "id": "node4_choice1",
+    "to": { "type": "node", "nodeId": "node1" },
+    "from": { "itemId": "Kembali ke menu utama", "nodeId": "node4" }
   },
   {
-    "id": "iek8p9fs0t56aofbg1z1e6vp",
-    "to": {
-      "type": "node",
-      "nodeId": "node5"
-    },
-    "from": {
-      "itemId": "End Sesi",
-      "nodeId": "node4"
-    }
+    "id": "node4_choice2",
+    "to": { "type": "node", "nodeId": "node5" },
+    "from": { "itemId": "End Sesi", "nodeId": "node4" }
   }
 ]

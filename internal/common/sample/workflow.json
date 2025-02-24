@@ -23,17 +23,17 @@
             {
               "value": "informasi_produk",
               "content": "1. Informasi produk",
-              "nextEdgeId": "node2"
+              "nextEdgeId": "node1_choice1"
             },
             {
               "value": "informasi_layanan",
               "content": "2. Informasi layanan",
-              "nextEdgeId": "node3"
+              "nextEdgeId": "node1_choice2"
             },
             {
               "value": "informasi_promo",
               "content": "3. Informasi promo",
-              "nextEdgeId": "node4"
+              "nextEdgeId": "node1_choice3"
             }
           ]
         }
@@ -52,18 +52,18 @@
         {
           "id": "node2_block2",
           "type": "choice",
-          "content": "",
+          "content": "pilih",
           "isDropdown": false,
           "choices": [
             {
-              "value": "Kembali ke menu utama",
-              "content": "Kembali ke menu utama",
-              "nextEdgeId": "node1"
+              "value": "menu utama",
+              "content": "menu utama",
+              "nextEdgeId": "node2_choice1"
             },
             {
               "value": "End Sesi",
               "content": "End Sesi",
-              "nextEdgeId": "node5"
+              "nextEdgeId": "node2_choice2"
             }
           ]
         }
@@ -82,18 +82,18 @@
         {
           "id": "node3_block2",
           "type": "choice",
-          "content": "",
+          "content": "pilih",
           "isDropdown": false,
           "choices": [
             {
-              "value": "Kembali ke menu utama",
-              "content": "Kembali ke menu utama",
-              "nextEdgeId": "node1"
+              "value": "menu utama",
+              "content": "menu utama",
+              "nextEdgeId": "node3_choice1"
             },
             {
               "value": "End Sesi",
               "content": "End Sesi",
-              "nextEdgeId": "node5"
+              "nextEdgeId": "node3_choice2"
             }
           ]
         }
@@ -112,18 +112,18 @@
         {
           "id": "node4_block2",
           "type": "choice",
-          "content": "",
+          "content": "pilih",
           "isDropdown": false,
           "choices": [
             {
-              "value": "Kembali ke menu utama",
-              "content": "Kembali ke menu utama",
-              "nextEdgeId": "node1"
+              "value": "menu utama",
+              "content": "menu utama",
+              "nextEdgeId": "node4_choice1"
             },
             {
               "value": "Hubungi Kami",
               "content": "Hubungi Kami",
-              "nextEdgeId": "agent"
+              "nextEdgeId": "node4_choice2"
             }
           ]
         }

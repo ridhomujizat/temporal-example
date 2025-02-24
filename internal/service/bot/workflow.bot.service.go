@@ -128,6 +128,8 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 						if next != nil {
 							resultNode.NextId = *next
 							break
+						} else {
+							currentState.CurrentFLow = ""
 						}
 					}
 
