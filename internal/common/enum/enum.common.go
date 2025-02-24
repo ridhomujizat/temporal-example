@@ -17,7 +17,7 @@ func ValidateEnum(fl validator.FieldLevel) bool {
 type BotPlatform string
 type Omnichannel string
 type ChannelSources string
-type ChannelId int
+type ChannelId uint
 type ChannelPlatform string
 type MessageType string
 type AccountPlatform string

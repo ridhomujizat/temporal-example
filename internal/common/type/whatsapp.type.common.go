@@ -72,3 +72,12 @@ type InteractiveListReplyWhatsapp struct {
 	Title string `json:"title" validate:"required"`
 	Id    string `json:"id" validate:"required"`
 }
+
+// Line struct for outgoing whatsapp message =============
+type OutgoingTextWhatsapp struct {
+	RecipientType    string       `json:"recipient_type"`
+	MessagingProduct string       `json:"messaging_product"`
+	To               string       `json:"to"`
+	Type             string       `json:"type"`
+	Text             TextWhatsapp `json:"text"`
+}

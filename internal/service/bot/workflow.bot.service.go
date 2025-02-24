@@ -139,18 +139,20 @@ func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.
 	}
 
 	for _, block := range flow.Blocks {
-		logger.Info("Hello from block", "name", block.ID)
 		switch block.Type {
 		case enum.TEXT:
 			var resultBlock types.HistoryChatBot
 			resultBlock.From = "bot"
 			resultBlock.Type = "text"
 			resultBlock.Message = block.Content
-			err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Text, payload, block).Get(ctx, nil)
+
+			var resultActivity *interface{}
+			err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Text, payload, block).Get(ctx, &resultActivity)
 			if err != nil {
-				logger.Error("Failed to get workflow", "Error", err)
+				logger.Error("Activity Fail", "Error", err)
 				return nil, err
 			}
+
 			result.HistoryChat = append(result.HistoryChat, resultBlock)
 
 			next := GetNextEdgeFlow(edge, flow.ID)
@@ -160,7 +162,7 @@ func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.
 			}
 			continue
 		default:
-			logger.Error("Failed to get workflow", "Error", "Block type not found")
+			logger.Error("====Fail Nide Notfound====", "Error", "Block type not found")
 			continue
 		}
 	}

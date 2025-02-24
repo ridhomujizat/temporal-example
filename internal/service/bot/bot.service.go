@@ -18,6 +18,7 @@ func (w *Service) Init() error {
 	wf.RegisterWorkflow(WorkflowByBlock)
 	// wf.RegisterActivity(Activity)
 	wf.RegisterActivity(&botactivity.ActivityBotService{
+		Ctx:     w.ctx,
 		Bot:     w.repository.Bot,
 		Account: w.repository.Account,
 	})
