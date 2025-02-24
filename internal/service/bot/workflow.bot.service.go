@@ -39,10 +39,19 @@ func GetEdgeFlow(flow model.BotWorkflow, NodeID string) model.Node {
 	return model.Node{}
 }
 
-func GetNextEdgeFlow(flow model.BotWorkflowEdgesSlice, NodeID string) *model.To {
+func GetNextEdgeFlow(flow model.BotWorkflowEdgesSlice, NodeID *string) *model.To {
 	for _, node := range flow {
-		if node.ID == NodeID {
+		if node.ID == *NodeID {
 			return &node.To
+		}
+	}
+	return nil
+}
+
+func GetNextEdgeFlowByChoice(flow []model.Choice, value string) *string {
+	for _, node := range flow {
+		if node.Value == value {
+			return &node.NextEdgeID
 		}
 	}
 	return nil
@@ -55,7 +64,7 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("HelloWorld workflow started", "name", payload.MetaData.CustName)
+	// logger.Info("HelloWorld workflow started", "name", payload.MetaData.CustName)
 
 	//Get Workfloww
 	var workFlow []model.BotWorkflow
@@ -84,7 +93,7 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 
 		var resultBlock []types.ResultBlockChat
 		for nodeState.CurrentNode != "" {
-			logger.Info("Current Node", "Name", nodeState.NodeCurrent.Title)
+			logger.Info("Current BLock", "Name", nodeState.NodeCurrent.Title)
 
 			cwo := workflow.ChildWorkflowOptions{
 				WorkflowID: fmt.Sprintf("%s-%s", nodeState.NodeCurrent.ID, currentState.FlowCurrent.Name),
@@ -131,7 +140,7 @@ func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	logger.Info("Hello from node", "name", flow.Title)
+	// logger.Info("Hello from node", "name", flow.Title)
 
 	result := types.ResultBlockChat{
 		ID:   flow.ID,
@@ -142,8 +151,8 @@ func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.
 		switch block.Type {
 		case enum.TEXT:
 			var resultBlock types.HistoryChatBot
-			resultBlock.From = "bot"
-			resultBlock.Type = "text"
+			resultBlock.From = payload.MetaData.AccountId
+			resultBlock.Type = "bot"
 			resultBlock.Message = block.Content
 
 			var resultActivity *interface{}
@@ -155,7 +164,39 @@ func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.
 
 			result.HistoryChat = append(result.HistoryChat, resultBlock)
 
-			next := GetNextEdgeFlow(edge, flow.ID)
+			if block.NextEdgeID != nil {
+				next := GetNextEdgeFlow(edge, block.NextEdgeID)
+				if next != nil {
+					result.NextId = *next
+					break
+				}
+			}
+
+			continue
+		case enum.CHOICE:
+			var resultBlock types.HistoryChatBot
+			resultBlock.From = payload.MetaData.CustName
+			resultBlock.Type = "user"
+			resultBlock.Message = block.Content
+
+			var resultActivity *interface{}
+			err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Choice, payload, block).Get(ctx, &resultActivity)
+			if err != nil {
+				logger.Error("Activity Fail", "Error", err)
+				return nil, err
+			}
+			result.HistoryChat = append(result.HistoryChat, resultBlock)
+
+			var input types.PayloadBot
+			selector := workflow.NewSelector(ctx)
+			selector.AddReceive(workflow.GetSignalChannel(ctx, "user_reply"),
+				func(c workflow.ReceiveChannel, _ bool) {
+					c.Receive(ctx, &input)
+				})
+			selector.Select(ctx)
+
+			NextEdgeID := GetNextEdgeFlowByChoice(block.Choices, input.Value)
+			next := GetNextEdgeFlow(edge, NextEdgeID)
 			if next != nil {
 				result.NextId = *next
 				break

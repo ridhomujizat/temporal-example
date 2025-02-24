@@ -83,6 +83,7 @@ const (
 
 const (
 	TEXT        MessageType = "text"
+	CHOICE      MessageType = "choice"
 	CONTACTS    MessageType = "contacts"
 	DOCUMENT    MessageType = "document"
 	INTERACTIVE MessageType = "interactive"

@@ -18,22 +18,23 @@ func (a *ActivityBotService) Text(payload types.PayloadBot, block model.Block) (
 
 	switch accountSetting.ChannelId {
 	case enum.WHATSAPP_ID:
-		payloadText := types.OutgoingTextWhatsapp{
-			RecipientType:    "INDIVIDUAL",
-			MessagingProduct: "WHATSAPP",
-			To:               payload.MetaData.UniqueId,
-			Type:             "TEXT",
-			Text: types.TextWhatsapp{
-				Body: block.Content,
-			},
-		}
-		return outgoingWhatsappText(a.Ctx, payloadText, accountSetting, block)
+
+		return outgoingWhatsappText(a.Ctx, payload, accountSetting, block)
 	default:
 		return nil, nil
 	}
 }
 
-func outgoingWhatsappText(ctx context.Context, payload types.OutgoingTextWhatsapp, accountSetting model.AccountSetting, block model.Block) (*interface{}, error) {
+func outgoingWhatsappText(ctx context.Context, payload types.PayloadBot, accountSetting model.AccountSetting, block model.Block) (*interface{}, error) {
+	payloadText := types.OutgoingTextWhatsapp{
+		RecipientType:    "INDIVIDUAL",
+		MessagingProduct: "WHATSAPP",
+		To:               payload.MetaData.UniqueId,
+		Type:             "TEXT",
+		Text: types.TextWhatsapp{
+			Body: block.Content,
+		},
+	}
 	baseUrl := fmt.Sprintf("%s%s", accountSetting.BaseURL, "/waba/api/messages")
 	headers := http.Header{
 		"Content-Type": []string{"application/json"},
@@ -43,7 +44,7 @@ func outgoingWhatsappText(ctx context.Context, payload types.OutgoingTextWhatsap
 	resp, err := helper.HTTPRequest(&helper.HTTPRequestPayload{
 		Method: enum.POST,
 		URL:    baseUrl,
-		Body:   payload,
+		Body:   payloadText,
 	},
 		&helper.HTTPRequestConfig{
 			Headers: headers,

@@ -81,3 +81,65 @@ type OutgoingTextWhatsapp struct {
 	Type             string       `json:"type"`
 	Text             TextWhatsapp `json:"text"`
 }
+
+type OutgoingButtonWhatsapp struct {
+	RecipientType    string              `json:"recipient_type"`
+	MessagingProduct string              `json:"messaging_product"`
+	To               string              `json:"to"`
+	Type             string              `json:"type"`
+	Interactive      InteractiveWhatsapp `json:"interactive"`
+}
+
+type OutgoingListWhatsapp struct {
+	RecipientType    string              `json:"recipient_type"`
+	MessagingProduct string              `json:"messaging_product"`
+	To               string              `json:"to"`
+	Type             string              `json:"type"`
+	Interactive      InteractiveWhatsapp `json:"interactive"`
+}
+
+type InteractiveWhatsapp struct {
+	Type   string          `json:"type"`
+	Body   BodyWhatsapp    `json:"body"`
+	Action ActionWhatsapp  `json:"action"`
+	Header *HeaderWhatsapp `json:"header,omitempty"`
+}
+
+type ActionWhatsapp struct {
+	Buttons  []ButtonWhatsapp  `json:"buttons,omitempty"`
+	Button   string            `json:"button,omitempty"`
+	Sections []SectionWhatsapp `json:"sections,omitempty"`
+}
+
+type SectionWhatsapp struct {
+	Rows  []RowsWhatsapp `json:"rows"`
+	Title string         `json:"title"`
+}
+
+type RowsWhatsapp struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	ID          string `json:"id"`
+}
+
+type ButtonWhatsapp struct {
+	Type  string        `json:"type"`
+	Reply ReplyWhatsapp `json:"reply"`
+}
+
+type ReplyWhatsapp struct {
+	Title string `json:"title"`
+	ID    string `json:"id"`
+}
+
+type HeaderWhatsapp struct {
+	Type  string        `json:"type"`
+	Image ImageWhatsapp `json:"image"`
+	Text  string        `json:"text"`
+}
+
+type ImageWhatsapp struct {
+	ID      string `json:"id"`
+	Caption string `json:"caption,omitempty"`
+	Link    string `json:"link,omitempty"`
+}
