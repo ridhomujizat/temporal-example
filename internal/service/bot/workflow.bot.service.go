@@ -1,6 +1,8 @@
 package botService
 
 import (
+	"fmt"
+	"onx-outgoing-go/internal/common/model"
 	types "onx-outgoing-go/internal/common/type"
 	botactivity "onx-outgoing-go/internal/service/bot/activity"
 	"time"
@@ -8,7 +10,35 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func Workflow(ctx workflow.Context, payload types.PayloadBot) (string, error) {
+type RunningStateFlow struct {
+	CurrentFLow string
+	FlowCurrent model.BotWorkflow
+}
+
+type RunningStateBlock struct {
+	CurrentNode string
+	NodeCurrent model.Node
+}
+
+func GetNodeFlow(workFlow []model.BotWorkflow, flowName string) model.BotWorkflow {
+	for _, flow := range workFlow {
+		if flow.Name == flowName {
+			return flow
+		}
+	}
+	return model.BotWorkflow{}
+}
+
+func GetEdgeFlow(flow model.BotWorkflow, NodeID string) model.Node {
+	for _, node := range flow.Nodes.Nodes {
+		if node.ID == NodeID {
+			return node
+		}
+	}
+	return model.Node{}
+}
+
+func Workflow(ctx workflow.Context, payload types.PayloadBot) (*[]model.BotWorkflow, error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
 	}
@@ -17,28 +47,50 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (string, error) {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("HelloWorld workflow started", "name", payload.MetaData.CustName)
 
-	var result string
-	err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Text, payload).Get(ctx, &result)
+	//Get Workfloww
+	var workFlow []model.BotWorkflow
+	err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).GetFlow, payload).Get(ctx, &workFlow)
 	if err != nil {
-		logger.Error("Activity failed.", "Error", err)
-		return "", err
+		logger.Error("Failed to get workflow", "Error", err)
+		return nil, err
 	}
 
-	var input types.PayloadBot
-	selector := workflow.NewSelector(ctx)
-	selector.AddReceive(workflow.GetSignalChannel(ctx, "user_reply"),
-		func(c workflow.ReceiveChannel, _ bool) {
-			c.Receive(ctx, &input)
-		})
-	selector.Select(ctx)
+	currentState := RunningStateFlow{
+		CurrentFLow: "main",
+	}
+	currentState.FlowCurrent = GetNodeFlow(workFlow, currentState.CurrentFLow)
 
-	err = workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).End, payload, input.Value).Get(ctx, &result)
-	if err != nil {
-		logger.Error("Activity failed.", "Error", err)
-		return "", err
+	for currentState.FlowCurrent.Name != "" {
+		logger.Info("Current Node", "Name", currentState.FlowCurrent.Name)
+
+		nodeState := RunningStateBlock{
+			CurrentNode: currentState.FlowCurrent.Nodes.StartNodeID,
+		}
+
+		nodeState.NodeCurrent = GetEdgeFlow(currentState.FlowCurrent, nodeState.CurrentNode)
+
+		for nodeState.CurrentNode != "" {
+			logger.Info("Current Node", "Name", nodeState.NodeCurrent.Title)
+
+			cwo := workflow.ChildWorkflowOptions{
+				WorkflowID: fmt.Sprintf("%s-%s", nodeState.NodeCurrent.ID, currentState.FlowCurrent.Name),
+			}
+			ctx = workflow.WithChildOptions(ctx, cwo)
+
+			var result interface{}
+			err = workflow.ExecuteChildWorkflow(ctx, WorkflowByBlock, payload, nodeState.NodeCurrent).Get(ctx, &result)
+			if err != nil {
+				logger.Error("Failed to get workflow", "Error", err)
+				return nil, err
+			}
+		}
+
 	}
 
-	logger.Info("HelloWorld workflow completed.", "result", result)
+	return &workFlow, nil
+}
 
-	return result, nil
+func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.Node) (*interface{}, error) {
+
+	return nil, nil
 }

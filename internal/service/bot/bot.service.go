@@ -3,6 +3,7 @@ package botService
 import (
 	"context"
 	"fmt"
+	"onx-outgoing-go/internal/common/model"
 	types "onx-outgoing-go/internal/common/type"
 	botactivity "onx-outgoing-go/internal/service/bot/activity"
 
@@ -15,8 +16,12 @@ func (w *Service) Init() error {
 	wf := worker.New(c, w.taskQueueName, worker.Options{})
 
 	wf.RegisterWorkflow(Workflow)
+	wf.RegisterWorkflow(WorkflowByBlock)
 	// wf.RegisterActivity(Activity)
-	wf.RegisterActivity(&botactivity.ActivityBotService{})
+	wf.RegisterActivity(&botactivity.ActivityBotService{
+		Bot:     w.repository.Bot,
+		Account: w.repository.Account,
+	})
 
 	go func() {
 		err := wf.Run(worker.InterruptCh())
@@ -29,6 +34,7 @@ func (w *Service) Init() error {
 }
 
 func (s *Service) ExecuteWorkflow(payload types.PayloadBot) (interface{}, error) {
+
 	workflowID := fmt.Sprintf("bot-%s-%s-%s", payload.MetaData.ChannelSources, payload.MetaData.AccountId, payload.MetaData.UniqueId)
 	workflowOptions := client.StartWorkflowOptions{
 		ID:        workflowID,
@@ -44,7 +50,7 @@ func (s *Service) ExecuteWorkflow(payload types.PayloadBot) (interface{}, error)
 		if err != nil {
 			return nil, err
 		}
-		var result string
+		var result *[]model.BotWorkflow
 		err = we.Get(context.Background(), &result)
 		if err != nil {
 			return nil, err

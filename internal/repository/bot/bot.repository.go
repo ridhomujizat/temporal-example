@@ -2,7 +2,7 @@ package botRepository
 
 import "onx-outgoing-go/internal/common/model"
 
-func (r *Repository) GetBot(idBot string) (model.BotAccount, error) {
+func (r *Repository) GetBot(idBot uint) (model.BotAccount, error) {
 	var botAccount model.BotAccount
 
 	if err := r.db.GetDB().Where("id = ?", idBot).First(&botAccount).Error; err != nil {
@@ -12,10 +12,10 @@ func (r *Repository) GetBot(idBot string) (model.BotAccount, error) {
 	return botAccount, nil
 }
 
-func (r *Repository) GetBotWorkflow(idBot string, bot model.BotAccount) ([]model.BotWorkflow, error) {
+func (r *Repository) GetBotWorkflow(idBot uint) ([]model.BotWorkflow, error) {
 	var workflow []model.BotWorkflow
 
-	if err := r.db.GetDB().Where("bot_id = ?", idBot).Find(&workflow).Error; err != nil {
+	if err := r.db.GetDB().Where("bot_id = ?", 1).Find(&workflow).Error; err != nil {
 		return workflow, err
 	}
 
@@ -46,7 +46,7 @@ func (r *Repository) DeleteBot(bot model.BotAccount) error {
 	return nil
 }
 
-func (r *Repository) GetBotWorkflowById(idBot string, idWorkflow string) (model.BotWorkflow, error) {
+func (r *Repository) GetBotWorkflowById(idBot uint, idWorkflow string) (model.BotWorkflow, error) {
 	var workflow model.BotWorkflow
 
 	if err := r.db.GetDB().Where("bot_id = ? AND id = ?", idBot, idWorkflow).First(&workflow).Error; err != nil {

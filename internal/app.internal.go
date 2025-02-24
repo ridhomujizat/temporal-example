@@ -8,6 +8,8 @@ import (
 	"onx-outgoing-go/internal/pkg/rabbitmq"
 	"onx-outgoing-go/internal/pkg/redis"
 	"onx-outgoing-go/internal/repository"
+	accountRepository "onx-outgoing-go/internal/repository/account"
+	botRepository "onx-outgoing-go/internal/repository/bot"
 	botService "onx-outgoing-go/internal/service/bot"
 	"sync"
 
@@ -18,7 +20,8 @@ import (
 func Setup(env config.Config, engine *gin.Engine, ctx context.Context, wg *sync.WaitGroup, redis redis.IRedis, rabbitMq *rabbitmq.ConnectionManager, publisher *rabbitmq.Publisher, temporalClient client.Client, db postgre.IPostgre) {
 
 	repository := &repository.Repository{
-		// Account: accountRepository.NewService(ctx, redis, rabbitMq, publisher),
+		Account: accountRepository.NewService(ctx, redis, db),
+		Bot:     botRepository.NewService(ctx, redis, db),
 	}
 
 	InitServicesOmnix(ctx, redis, rabbitMq, repository, temporalClient)
