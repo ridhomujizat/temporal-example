@@ -163,6 +163,8 @@ func (p *Client) AutoMigrateEnum() error {
 func (p *Client) Migrate() error {
 	err := p.db.AutoMigrate(
 		&model.BotAccount{},
+		&model.BotWorkflow{},
+		&model.AccountSetting{},
 		// &model.FlowSetting{},
 		// &model.Session{},
 		// &model.SessionHistory{},
