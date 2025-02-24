@@ -38,6 +38,25 @@ func outgoingWhatsappChoice(ctx context.Context, payload types.PayloadBot, accou
 	}
 
 	if block.IsDropdown != nil && *block.IsDropdown {
+		Button := "Select an option"
+		payload0utgoing.Body = types.OutgoingListWhatsapp{
+			RecipientType:    "INDIVIDUAL",
+			MessagingProduct: "WHATSAPP",
+			To:               payload.MetaData.UniqueId,
+			Type:             "INTERACTIVE",
+			Interactive: types.InteractiveWhatsapp{
+				Type: "list",
+				Body: types.BodyWhatsapp{Text: block.Content},
+				Action: types.ActionWhatsapp{
+					Button: Button,
+					Sections: []types.SectionWhatsapp{{
+						Title: Button,
+						Rows:  mapChoicesToSections(block.Choices)}},
+				},
+			},
+		}
+
+	} else {
 		payload0utgoing.Body = types.OutgoingButtonWhatsapp{
 			RecipientType:    "INDIVIDUAL",
 			MessagingProduct: "WHATSAPP",
@@ -48,24 +67,6 @@ func outgoingWhatsappChoice(ctx context.Context, payload types.PayloadBot, accou
 				Body: types.BodyWhatsapp{Text: block.Content},
 				Action: types.ActionWhatsapp{
 					Buttons: mapChoicesToButtons(block.Choices),
-				},
-			},
-		}
-	} else {
-		Button := "Select an option"
-		payload0utgoing.Body = types.OutgoingListWhatsapp{
-			RecipientType:    "INDIVIDUAL",
-			MessagingProduct: "WHATSAPP",
-			To:               payload.MetaData.UniqueId,
-			Type:             "CHOICE",
-			Interactive: types.InteractiveWhatsapp{
-				Type: "list",
-				Body: types.BodyWhatsapp{Text: block.Content},
-				Action: types.ActionWhatsapp{
-					Button: Button,
-					Sections: []types.SectionWhatsapp{{
-						Title: Button,
-						Rows:  mapChoicesToSections(block.Choices)}},
 				},
 			},
 		}
