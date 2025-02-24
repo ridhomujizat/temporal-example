@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"onx-outgoing-go/internal/common/enum"
+	"onx-outgoing-go/internal/pkg/postgre"
 	"onx-outgoing-go/internal/pkg/rabbitmq"
 	"onx-outgoing-go/internal/pkg/redis"
 	"sync"
@@ -11,17 +12,23 @@ import (
 )
 
 type Config struct {
-	AppEnv        enum.EnvEnum `env:"APP_ENV" envDefault:"development"`
-	AppPort       int          `env:"APP_PORT" envDefault:"8080"`
-	AppTenant     string       `env:"APP_TENANT" envDefault:"tenant"`
-	RedisHost     string       `env:"REDIS_HOST" envDefault:"localhost"`
-	RedisPort     int          `env:"REDIS_PORT" envDefault:"6379"`
-	RedisPass     string       `env:"REDIS_PASS" envDefault:""`
-	RedisPoolSize int          `env:"REDIS_POOL_SIZE" envDefault:"10"`
-	RabbitHost    string       `env:"RABBIT_HOST" envDefault:"localhost"`
-	RabbitPort    int          `env:"RABBIT_PORT" envDefault:"5672"`
-	RabbitUser    string       `env:"RABBIT_USER" envDefault:"guest"`
-	RabbitPass    string       `env:"RABBIT_PASS" envDefault:""`
+	AppEnv          enum.EnvEnum `env:"APP_ENV" envDefault:"development"`
+	AppPort         int          `env:"APP_PORT" envDefault:"8080"`
+	AppTenant       string       `env:"APP_TENANT" envDefault:"tenant"`
+	RedisHost       string       `env:"REDIS_HOST" envDefault:"localhost"`
+	RedisPort       int          `env:"REDIS_PORT" envDefault:"6379"`
+	RedisPass       string       `env:"REDIS_PASS" envDefault:""`
+	RedisPoolSize   int          `env:"REDIS_POOL_SIZE" envDefault:"10"`
+	RabbitHost      string       `env:"RABBIT_HOST" envDefault:"localhost"`
+	RabbitPort      int          `env:"RABBIT_PORT" envDefault:"5672"`
+	RabbitUser      string       `env:"RABBIT_USER" envDefault:"guest"`
+	RabbitPass      string       `env:"RABBIT_PASS" envDefault:""`
+	PostgreHost     string       `env:"DB_HOST" envDefault:"localhost"`
+	PostgreSync     bool         `env:"DB_SYNC" envDefault:"false"`
+	PostgreUsername string       `env:"DB_USERNAME" envDefault:"postgres"`
+	PostgrePassword string       `env:"DB_PASSWORD" envDefault:"postgres"`
+	PostgreName     string       `env:"DB_NAME" envDefault:"postgres"`
+	PostgrePort     string       `env:"DB_PORT" envDefault:"5432"`
 }
 
 type SetupServerDto struct {
@@ -32,5 +39,6 @@ type SetupServerDto struct {
 	Rds    redis.IRedis
 	Rb     *rabbitmq.ConnectionManager
 	Pb     *rabbitmq.Publisher
+	Db     postgre.IPostgre
 	Tp     client.Client
 }

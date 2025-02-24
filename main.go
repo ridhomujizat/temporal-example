@@ -7,6 +7,7 @@ import (
 	"onx-outgoing-go/config"
 	"onx-outgoing-go/internal"
 	"onx-outgoing-go/internal/pkg/logger"
+	"onx-outgoing-go/internal/pkg/postgre"
 	"onx-outgoing-go/internal/pkg/rabbitmq"
 	"onx-outgoing-go/internal/pkg/redis"
 	"onx-outgoing-go/internal/pkg/temporal"
@@ -56,6 +57,12 @@ func main() {
 		panic(err)
 	}
 
+	dbp, err := setupPostgre(ctx, env)
+	if err != nil {
+		logger.Error.Println("Error connecting to postgre")
+		panic(err)
+	}
+
 	// Initialize Temporal connection early and defer closing it until the app shuts down.
 	err = temporal.InitTemporalConnection(ctx)
 	if err != nil {
@@ -71,6 +78,7 @@ func main() {
 		Env:    env,
 		Rds:    rds,
 		Rb:     rb,
+		Db:     dbp,
 		Pb:     publisher,
 		Tp:     temporal.GetTemporalClient(),
 	})
@@ -79,6 +87,16 @@ func main() {
 	// Give workers a moment to cleanup (if needed) then close the Temporal connection.
 	time.Sleep(2 * time.Second) // optional: adjust for proper graceful shutdown
 	temporal.CloseTemporalConnection()
+}
+
+func setupPostgre(ctx context.Context, env *config.Config) (postgre.IPostgre, error) {
+	return postgre.Setup(ctx, &postgre.Config{
+		Host:     env.PostgreHost,
+		Username: env.PostgreUsername,
+		Password: env.PostgrePassword,
+		Name:     env.PostgreName,
+		Port:     env.PostgrePort,
+	})
 }
 
 func setupRedis(ctx context.Context, env *config.Config) (redis.IRedis, error) {
@@ -115,6 +133,7 @@ func setupServer(payload *config.SetupServerDto) {
 	rb := payload.Rb
 	pb := payload.Pb
 	tp := payload.Tp
+	db := payload.Db
 
 	defer func() {
 		if rds != nil {
@@ -140,7 +159,7 @@ func setupServer(payload *config.SetupServerDto) {
 		//WriteTimeout: 1 * time.Minute,
 	}
 
-	internal.Setup(*env, e, *ctx, wg, rds, rb, pb, tp)
+	internal.Setup(*env, e, *ctx, wg, rds, rb, pb, tp, db)
 
 	go func() {
 		logger.HTTP.Println("========= Server Started =========")

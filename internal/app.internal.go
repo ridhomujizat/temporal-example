@@ -4,6 +4,7 @@ import (
 	"context"
 	"onx-outgoing-go/config"
 	"onx-outgoing-go/internal/pkg/logger"
+	"onx-outgoing-go/internal/pkg/postgre"
 	"onx-outgoing-go/internal/pkg/rabbitmq"
 	"onx-outgoing-go/internal/pkg/redis"
 	"onx-outgoing-go/internal/repository"
@@ -15,7 +16,7 @@ import (
 	"go.temporal.io/sdk/client"
 )
 
-func Setup(env config.Config, engine *gin.Engine, ctx context.Context, wg *sync.WaitGroup, redis redis.IRedis, rabbitMq *rabbitmq.ConnectionManager, publisher *rabbitmq.Publisher, temporalClient client.Client) {
+func Setup(env config.Config, engine *gin.Engine, ctx context.Context, wg *sync.WaitGroup, redis redis.IRedis, rabbitMq *rabbitmq.ConnectionManager, publisher *rabbitmq.Publisher, temporalClient client.Client, db postgre.IPostgre) {
 
 	repository := &repository.Repository{
 		Account: accountRepository.NewService(ctx, redis, rabbitMq, publisher),
