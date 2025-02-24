@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"onx-outgoing-go/internal/common/enum"
 	"time"
 )
 
@@ -79,12 +80,12 @@ type Node struct {
 }
 
 type Block struct {
-	ID         string   `json:"id"`
-	Type       string   `json:"type"`
-	Content    string   `json:"content"`
-	Choices    []Choice `json:"choices,omitempty"`
-	IsDropdown *bool    `json:"isDropdown,omitempty"`
-	NextEdgeID *string  `json:"nextEdgeId,omitempty"`
+	ID         string           `json:"id"`
+	Type       enum.MessageType `json:"type"`
+	Content    string           `json:"content"`
+	Choices    []Choice         `json:"choices,omitempty"`
+	IsDropdown *bool            `json:"isDropdown,omitempty"`
+	NextEdgeID *string          `json:"nextEdgeId,omitempty"`
 }
 
 type Choice struct {
@@ -110,6 +111,7 @@ type From struct {
 }
 
 type To struct {
-	Type   string `json:"type"`
-	NodeID string `json:"nodeId"`
+	Type       string `json:"type" `
+	NodeID     string `json:"nodeId" validate:"omitempty"`
+	WorkflowId string `json:"workflowId" validate:"omitempty"`
 }

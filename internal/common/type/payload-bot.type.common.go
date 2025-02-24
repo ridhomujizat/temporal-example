@@ -1,6 +1,9 @@
 package types
 
-import "onx-outgoing-go/internal/common/enum"
+import (
+	"onx-outgoing-go/internal/common/enum"
+	"onx-outgoing-go/internal/common/model"
+)
 
 type PayloadBot struct {
 	CustMessage interface{} `json:"incoming"`
@@ -8,6 +11,7 @@ type PayloadBot struct {
 	MetaData    MetaData    `json:"metadata"`
 }
 
+// Incoming message from user ========================
 type MetaData struct {
 	// BotEndpoint     string               `json:"bot_endpoint" validate:"omitempty,url"`
 	// BotAccount      string               `json:"bot_account" validate:"omitempty"`
@@ -30,4 +34,25 @@ type MetaData struct {
 type LocationPayload struct {
 	Latitude  float64 `json:"latitude" validate:"required"`
 	Longitude float64 `json:"longitude" validate:"required"`
+}
+
+// History chat ========================
+type ResultWorkflowBot struct {
+	AccountId       string            `json:"accountId" validate:"required"`
+	UniqueId        string            `json:"unique_id" validate:"required"`
+	ResultBlockChat []ResultBlockChat `json:"result_block_chat" validate:"required"`
+}
+
+type ResultBlockChat struct {
+	ID          string           `json:"id" validate:"required"`
+	Node        string           `json:"node" validate:"required"`
+	NextId      model.To         `json:"next_id" validate:"required"`
+	HistoryChat []HistoryChatBot `json:"history_chat" validate:"required"`
+}
+
+type HistoryChatBot struct {
+	From          string `json:"from" validate:"required"`
+	Type          string `json:"type" validate:"required"`
+	Message       string `json:"message" validate:"required"`
+	DateTimestamp string `json:"date_timestamp" validate:"required"`
 }

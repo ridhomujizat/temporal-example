@@ -3,7 +3,6 @@ package botService
 import (
 	"context"
 	"fmt"
-	"onx-outgoing-go/internal/common/model"
 	types "onx-outgoing-go/internal/common/type"
 	botactivity "onx-outgoing-go/internal/service/bot/activity"
 
@@ -50,7 +49,7 @@ func (s *Service) ExecuteWorkflow(payload types.PayloadBot) (interface{}, error)
 		if err != nil {
 			return nil, err
 		}
-		var result *[]model.BotWorkflow
+		var result *types.ResultWorkflowBot
 		err = we.Get(context.Background(), &result)
 		if err != nil {
 			return nil, err
