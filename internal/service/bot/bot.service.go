@@ -15,7 +15,6 @@ func (w *Service) Init() error {
 	wf := worker.New(c, w.taskQueueName, worker.Options{})
 
 	wf.RegisterWorkflow(Workflow)
-	wf.RegisterWorkflow(WorkflowByBlock)
 	// wf.RegisterActivity(Activity)
 	wf.RegisterActivity(&botactivity.ActivityBotService{
 		Ctx:     w.ctx,

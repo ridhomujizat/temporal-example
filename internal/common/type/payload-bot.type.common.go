@@ -41,6 +41,7 @@ type ResultWorkflowBot struct {
 	AccountId       string            `json:"accountId" validate:"required"`
 	UniqueId        string            `json:"unique_id" validate:"required"`
 	ResultBlockChat []ResultBlockChat `json:"result_block_chat" validate:"required"`
+	Error           string            `json:"error" validate:"omitempty"`
 }
 
 type ResultBlockChat struct {

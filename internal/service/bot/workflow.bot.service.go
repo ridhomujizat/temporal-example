@@ -8,6 +8,7 @@ import (
 	botactivity "onx-outgoing-go/internal/service/bot/activity"
 	"time"
 
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
 
@@ -58,20 +59,41 @@ func GetNextEdgeFlowByChoice(flow []model.Choice, value string) string {
 }
 
 func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWorkflowBot, error) {
+	// Set retry policy for activities
+	retryPolicy := &temporal.RetryPolicy{
+		InitialInterval:    time.Second,
+		BackoffCoefficient: 2.0,
+		MaximumInterval:    time.Minute,
+		MaximumAttempts:    3,
+	}
+
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
+		RetryPolicy:         retryPolicy,
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	logger := workflow.GetLogger(ctx)
-	// logger.Info("HelloWorld workflow started", "name", payload.MetaData.CustName)
+	logger.Info("Bot workflow started", "account", payload.MetaData.AccountId)
 
-	//Get Workfloww
+	// Get Workflow with error handling
 	var workFlow []model.BotWorkflow
 	err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).GetFlow, payload).Get(ctx, &workFlow)
 	if err != nil {
 		logger.Error("Failed to get workflow", "Error", err)
-		return nil, err
+		return &types.ResultWorkflowBot{
+			AccountId: payload.MetaData.AccountId,
+			UniqueId:  payload.MetaData.UniqueId,
+			Error:     fmt.Sprintf("Failed to fetch workflow: %v", err),
+		}, err
+	}
+
+	if len(workFlow) == 0 {
+		return &types.ResultWorkflowBot{
+			AccountId: payload.MetaData.AccountId,
+			UniqueId:  payload.MetaData.UniqueId,
+			Error:     "No workflow found",
+		}, fmt.Errorf("no workflow found")
 	}
 
 	currentState := RunningStateFlow{
@@ -79,21 +101,38 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 	}
 	currentState.FlowCurrent = GetNodeFlow(workFlow, currentState.CurrentFLow)
 
+	// Check if main flow exists
+	if currentState.FlowCurrent.Name == "" {
+		return &types.ResultWorkflowBot{
+			AccountId: payload.MetaData.AccountId,
+			UniqueId:  payload.MetaData.UniqueId,
+			Error:     "Main flow not found",
+		}, fmt.Errorf("main flow not found")
+	}
+
 	resultHistory := types.ResultWorkflowBot{
 		AccountId: payload.MetaData.AccountId,
 		UniqueId:  payload.MetaData.UniqueId,
 	}
+
+	// Main flow loop
 	for currentState.CurrentFLow != "" {
-		logger.Info("Current Node", "Name", currentState.FlowCurrent.Name)
+		logger.Info("Processing flow", "name", currentState.FlowCurrent.Name)
 
 		nodeState := RunningStateBlock{
 			CurrentNode: currentState.FlowCurrent.Nodes.StartNodeID,
 		}
 
 		var resultBlock []types.ResultBlockChat
+		// Node processing loop
 		for nodeState.CurrentNode != "" {
 			nodeState.NodeCurrent = GetEdgeFlow(currentState.FlowCurrent, nodeState.CurrentNode)
-			logger.Info("Current BLock", "Name", nodeState.NodeCurrent.Title)
+			if nodeState.NodeCurrent.ID == "" {
+				logger.Error("Node not found", "nodeID", nodeState.CurrentNode)
+				break
+			}
+
+			logger.Info("Processing node", "title", nodeState.NodeCurrent.Title)
 
 			cwo := workflow.ChildWorkflowOptions{
 				WorkflowID: fmt.Sprintf("%s-%s", nodeState.NodeCurrent.ID, currentState.FlowCurrent.Name),
@@ -113,8 +152,13 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 					var resultActivity *interface{}
 					err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Text, payload, block).Get(ctx, &resultActivity)
 					if err != nil {
-						logger.Error("Activity Fail", "Error", err)
-						return nil, err
+						logger.Error("Text activity failed", "error", err)
+						resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
+							From:    payload.MetaData.AccountId,
+							Type:    "bot",
+							Message: "Sorry, I'm having trouble processing your request.",
+						})
+						continue
 					}
 
 					resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
@@ -134,26 +178,63 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 					}
 
 					continue
+
 				case enum.CHOICE:
 					var resultActivity *interface{}
 					err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Choice, payload, block).Get(ctx, &resultActivity)
 					if err != nil {
-						logger.Error("Activity Fail", "Error", err)
-						return nil, err
+						logger.Error("Choice activity failed", "error", err)
+						resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
+							From:    payload.MetaData.AccountId,
+							Type:    "bot",
+							Message: "Sorry, I'm having trouble processing your request.",
+						})
+						continue
 					}
+
 					resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
 						From:    payload.MetaData.AccountId,
 						Type:    "bot",
 						Message: block.Content,
 					})
 
+					// Use selector with timeout for user input
 					var input types.PayloadBot
+					userReplyReceived := false
+
+					// Wait for user reply with a timeout
 					selector := workflow.NewSelector(ctx)
 					selector.AddReceive(workflow.GetSignalChannel(ctx, "user_reply"),
 						func(c workflow.ReceiveChannel, _ bool) {
 							c.Receive(ctx, &input)
+							userReplyReceived = true
 						})
+
+					// Add timeout (e.g., 2 minutes)
+					timerFuture := workflow.NewTimer(ctx, time.Minute*2)
+					selector.AddFuture(timerFuture, func(f workflow.Future) {
+						// Timer fired, no signal received
+						userReplyReceived = false
+					})
+
 					selector.Select(ctx)
+
+					// Handle timeout case
+					if !userReplyReceived {
+						logger.Info("User reply timeout")
+						resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
+							From:    payload.MetaData.AccountId,
+							Type:    "bot",
+							Message: "I haven't heard from you in a while. This conversation will end now.",
+						})
+
+						// End the conversation
+						nodeState.CurrentNode = ""
+						currentState.CurrentFLow = ""
+						break
+					}
+
+					// Process user input
 					resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
 						From:    input.MetaData.CustName,
 						Type:    "user",
@@ -161,7 +242,21 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 					})
 
 					NextEdgeID := GetNextEdgeFlowByChoice(block.Choices, input.Value)
-					logger.Info(fmt.Sprintf("Choice===============%s-%s", input.Value, NextEdgeID))
+
+					// Handle invalid choice
+					if NextEdgeID == "" {
+						logger.Info("Invalid choice selected", "value", input.Value)
+						resultNode.HistoryChat = append(resultNode.HistoryChat, types.HistoryChatBot{
+							From:    payload.MetaData.AccountId,
+							Type:    "bot",
+							Message: "Sorry, that's not a valid option. Please try again.",
+						})
+
+						// Repeat the same node (don't move forward)
+						continue
+					}
+
+					logger.Info("Choice selected", "value", input.Value, "nextEdge", NextEdgeID)
 
 					next := GetNextEdgeFlow(edge, NextEdgeID)
 					if next != nil {
@@ -169,13 +264,14 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 						break
 					}
 					continue
+
 				default:
-					logger.Error("====Fail Nide Notfound====", "Error", "Block type not found")
+					logger.Error("Unknown block type", "type", block.Type)
 					continue
 				}
 			}
 
-			logger.Info(fmt.Sprintf("next node===============%s-%s", resultNode.NextId.Type, resultNode.NextId.NodeID))
+			logger.Info("Navigation", "nextType", resultNode.NextId.Type, "nextNode", resultNode.NextId.NodeID)
 			resultBlock = append(resultBlock, resultNode)
 
 			if resultNode.NextId.Type == "" {
@@ -186,96 +282,23 @@ func Workflow(ctx workflow.Context, payload types.PayloadBot) (*types.ResultWork
 
 			if resultNode.NextId.Type == "flow" {
 				currentState.CurrentFLow = resultNode.NextId.WorkflowId
+				// Update current flow with the new flow data
+				currentState.FlowCurrent = GetNodeFlow(workFlow, currentState.CurrentFLow)
+				if currentState.FlowCurrent.Name == "" {
+					logger.Error("Target flow not found", "flowId", currentState.CurrentFLow)
+					currentState.CurrentFLow = ""
+				}
 				break
 			}
 
 			if resultNode.NextId.Type == "node" {
 				nodeState.CurrentNode = resultNode.NextId.NodeID
 			}
-
 		}
 
 		resultHistory.ResultBlockChat = append(resultHistory.ResultBlockChat, resultBlock...)
-
 	}
 
+	logger.Info("Workflow completed", "account", payload.MetaData.AccountId)
 	return &resultHistory, nil
-}
-
-func WorkflowByBlock(ctx workflow.Context, payload types.PayloadBot, flow model.Node, edge model.BotWorkflowEdgesSlice) (*types.ResultBlockChat, error) {
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
-	}
-	ctx = workflow.WithActivityOptions(ctx, ao)
-
-	logger := workflow.GetLogger(ctx)
-	// logger.Info("Hello from node", "name", flow.Title)
-
-	result := types.ResultBlockChat{
-		ID:   flow.ID,
-		Node: flow.Title,
-	}
-
-	for _, block := range flow.Blocks {
-		switch block.Type {
-		case enum.TEXT:
-			var resultBlock types.HistoryChatBot
-			resultBlock.From = payload.MetaData.AccountId
-			resultBlock.Type = "bot"
-			resultBlock.Message = block.Content
-
-			var resultActivity *interface{}
-			err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Text, payload, block).Get(ctx, &resultActivity)
-			if err != nil {
-				logger.Error("Activity Fail", "Error", err)
-				return nil, err
-			}
-
-			result.HistoryChat = append(result.HistoryChat, resultBlock)
-
-			if block.NextEdgeID != nil {
-				next := GetNextEdgeFlow(edge, *block.NextEdgeID)
-				if next != nil {
-					result.NextId = *next
-					break
-				}
-			}
-
-			continue
-		case enum.CHOICE:
-			var resultBlock types.HistoryChatBot
-			resultBlock.From = payload.MetaData.CustName
-			resultBlock.Type = "user"
-			resultBlock.Message = block.Content
-
-			var resultActivity *interface{}
-			err := workflow.ExecuteActivity(ctx, (*botactivity.ActivityBotService).Choice, payload, block).Get(ctx, &resultActivity)
-			if err != nil {
-				logger.Error("Activity Fail", "Error", err)
-				return nil, err
-			}
-			result.HistoryChat = append(result.HistoryChat, resultBlock)
-
-			var input types.PayloadBot
-			selector := workflow.NewSelector(ctx)
-			selector.AddReceive(workflow.GetSignalChannel(ctx, "user_reply"),
-				func(c workflow.ReceiveChannel, _ bool) {
-					c.Receive(ctx, &input)
-				})
-			selector.Select(ctx)
-
-			NextEdgeID := GetNextEdgeFlowByChoice(block.Choices, input.Value)
-			next := GetNextEdgeFlow(edge, NextEdgeID)
-			if next != nil {
-				result.NextId = *next
-				break
-			}
-			continue
-		default:
-			logger.Error("====Fail Nide Notfound====", "Error", "Block type not found")
-			continue
-		}
-	}
-
-	return &result, nil
 }
